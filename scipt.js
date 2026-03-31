@@ -2,6 +2,12 @@ let tarefas = []
 const lista = document.getElementById('lista')
 const stats = document.getElementById('stats')
 const input = document.getElementById('tarefainput')
+const dadosSalvos = localStorage.getItem("tarefas")
+
+    if(dadosSalvos){
+        tarefas = JSON.parse(dadosSalvos)
+        atualizarUI()
+    }
 
 input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
@@ -17,26 +23,26 @@ class Tarefa{
     }
 }
 
+
 function adicionarTarefa(){
     
-    const Valor = input.value
+    const Valor = input.value.trim()
     if(Valor == "") return;
     
     const tarefa = new Tarefa( Valor )
     tarefas.push(tarefa)
     
+   salvarDados()
+   atualizarUI()
    
-    renderizarTarefas()
-    contador()
-
     input.value = ""
 }
 function renderizarTarefas(){
     lista.innerHTML = ""
 
     tarefas.forEach((tarefa) => {
-    const li = document.createElement('li')
-    li.textContent = tarefa.nome
+    const span = document.createElement('span')
+    span.textContent = tarefa.nome
 
     const btnConcluir = document.createElement('button')
         btnConcluir.textContent = "✔"
@@ -54,11 +60,11 @@ function renderizarTarefas(){
     li.appendChild(btnExcluir);
 
 
-    lista.appendChild(li)
+    lista.appendChild(span)
 
 
         if (tarefa.concluido) {
-            li.style.textDecoration = "line-through";
+            li.classList.add("concluida")
         }
 });
 }
@@ -80,23 +86,32 @@ function contador(){
 
 }
 
-function concluirTarefa(id) {
+    function concluirTarefa(id) {
+        const tarefa = tarefas.find(t => t.id === id)
 
-    tarefas = tarefas.map(tarefa => {
-        if (tarefa.id === id) {
-            tarefa.concluido = !tarefa.concluido;
+        if (tarefa) {
+            tarefa.concluido = !tarefa.concluido
         }
-        return tarefa;
-    });
+        
+        salvarDados()
+        atualizarUI()
+     
+    }
 
-    renderizarTarefas();
-    contador();
-}
 
 function removerTarefa(id) {
 
     tarefas = tarefas.filter(tarefa => tarefa.id !== id);
 
-    renderizarTarefas();
+    salvarDados()
+    atualizarUI()
+    
+}
+
+function atualizarUI(){
+    renderizarTarefas()
     contador()
+}
+function salvarDados(){
+    localStorage.setItem("tarefas", JSON.stringify(tarefas))
 }
