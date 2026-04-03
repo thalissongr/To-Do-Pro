@@ -4,13 +4,10 @@ const stats = document.getElementById('stats')
 const input = document.getElementById('tarefainput')
 const dadosSalvos = localStorage.getItem("tarefas")
 
-    if(dadosSalvos){
-        tarefas = JSON.parse(dadosSalvos)
-        atualizarUI()
-    }
-
+ 
 input.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
+        e.preventDefault()
         adicionarTarefa();
     }
 });
@@ -37,52 +34,55 @@ function adicionarTarefa(){
    
     input.value = ""
 }
-function renderizarTarefas(){
-    lista.innerHTML = ""
+function criarElementoTarefa(tarefa) {
+    const li = document.createElement('li')
 
-    tarefas.forEach((tarefa) => {
     const span = document.createElement('span')
     span.textContent = tarefa.nome
 
     const btnConcluir = document.createElement('button')
-        btnConcluir.textContent = "✔"
-    btnConcluir.onclick = () => {
-        concluirTarefa(tarefa.id)
+    btnConcluir.textContent = "✔"
+    btnConcluir.onclick = () => concluirTarefa(tarefa.id)
+
+    const btnExcluir = document.createElement('button')
+    btnExcluir.textContent = "🗑"
+    btnExcluir.onclick = () => removerTarefa(tarefa.id)
+
+    if (tarefa.concluido) {
+        li.classList.add("concluida")
     }
 
-    const btnExcluir = document.createElement('button');
-         btnExcluir.textContent = "🗑";
-    btnExcluir.onclick = () => {
-        removerTarefa(tarefa.id);
-    };
+    li.append(span, btnConcluir, btnExcluir)
 
-    li.appendChild(btnConcluir);
-    li.appendChild(btnExcluir);
+    return li
+}
+function renderizarTarefas(){
+    lista.innerHTML = ""
+    
+    
+    tarefas.forEach(tarefa => {
+        lista.appendChild(criarElementoTarefa(tarefa))
+    })
 
+}
+function criarStats(total, concluidas, pendentes) {
+    const p = document.createElement('p')
+    p.textContent =
+        `Total: ${total} | Concluídas: ${concluidas} | Pendentes: ${pendentes}`
 
-    lista.appendChild(span)
-
-
-        if (tarefa.concluido) {
-            li.classList.add("concluida")
-        }
-});
+    return p
 }
 
 function contador(){
-    let Total = tarefas.length
-    let concluidasArray = tarefas.filter(item => item.concluido);
-    let pendentesArray = tarefas.filter(item => !item.concluido);
+stats.innerHTML = ""
 
-    let Cld = concluidasArray.length;
-    let Pd = pendentesArray.length;
+    const total = tarefas.length
+    const concluidas = tarefas.filter(t => t.concluido).length
+    const pendentes = total - concluidas
 
-
-    stats.innerHTML = ""
-    const contar = document.createElement('p')
-    contar.textContent = `Total: ${Total} | Concluidas: ${Cld} | Pendentes: ${Pd}`
-
-    stats.appendChild(contar)
+    stats.appendChild(
+        criarStats(total, concluidas, pendentes)
+    )
 
 }
 
@@ -112,6 +112,13 @@ function atualizarUI(){
     renderizarTarefas()
     contador()
 }
+
 function salvarDados(){
     localStorage.setItem("tarefas", JSON.stringify(tarefas))
-}
+}  
+ 
+     if(dadosSalvos){
+        tarefas = JSON.parse(dadosSalvos)
+        
+    }
+atualizarUI()
